@@ -10,6 +10,11 @@ material = "1.12.0"
 activity = "1.10.1"
 constraintlayout = "2.2.1"
 navigation = "2.9.4"
+ktor = "3.2.3"
+koin = "4.1.1"
+ksp = "2.0.21-1.0.27"
+koin-annotations-version = "2.2.0-RC1"
+glide = "5.0.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -23,8 +28,21 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment",version.ref = "navigation"}
 androidx-navigation-ui = { module = "androidx.navigation:navigation-ui",version.ref = "navigation"}
 androidx-navigation-dynamic = { module = "androidx.navigation:navigation-dynamic-features-fragment",version.ref = "navigation"}
+ktor-client-core = {module = "io.ktor:ktor-client-core",version.ref = "ktor"}
+ktor-client-cio = { module = "io.ktor:ktor-client-cio",version.ref = "ktor"}
+ktor-client-logging = { module = "io.ktor:ktor-client-logging",version.ref = "ktor"}
+ktor-client-content-negotiation = {module = "io.ktor:ktor-client-content-negotiation",version.ref = "ktor"}
+ktor-serialization-json = {module = "io.ktor:ktor-serialization-kotlinx-json",version.ref = "ktor"}
+koin-core = {module = "io.insert-koin:koin-core",version.ref = "koin"}
+#koin-viewmodel = {module = "io.insert-koin:koin-androidx-viewmodel",version.ref ="koin"}
+koin-android = {module = "io.insert-koin:koin-android",version.ref = "koin"}
+koin-annotations = {module = "io.insert-koin:koin-annotations",version.ref = "koin-annotations-version"}
+koin-compiler = {module = "io.insert-koin:koin-ksp-compiler",version.ref = "koin-annotations-version"}
+github-glide = {module = "com.github.bumptech.glide:glide",version.ref = "glide"}
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+google-ksp = {id = "com.google.devtools.ksp",version.ref = "ksp"}
 

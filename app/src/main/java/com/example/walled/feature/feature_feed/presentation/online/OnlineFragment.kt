@@ -1,60 +1,74 @@
 package com.example.walled.feature.feature_feed.presentation.online
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.Observer
+import androidx.lifecycle.observe
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.example.walled.databinding.FragmentOnlineBinding
+import com.example.walled.feature.feature_feed.domain.model.Media
+import com.example.walled.feature.feature_feed.presentation.adapter.ImagesAdapter
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.example.walled.R
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [OnlineFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class OnlineFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding : FragmentOnlineBinding? = null
+    private val binding get() = _binding!!
+    private val viewmodel : OnlineViewModel by viewModel<OnlineViewModel>()
+    private lateinit var imageListObserver: Observer<List<Media>>
+    private lateinit var loadingIndicatorObserver : Observer<Boolean>
+    private lateinit var imagesAdapter: ImagesAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_online, container, false)
+        _binding = FragmentOnlineBinding.inflate(inflater,container,false)
+        val view = binding.root
+        return view
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment OnlineFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            OnlineFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        imageListObserver = Observer<List<Media>>{ list->
+            Log.d(TAG, "data returned")
+            imagesAdapter = ImagesAdapter(requireContext(),list)
+            binding.rvImages.adapter = imagesAdapter
+        }
+        loadingIndicatorObserver = Observer<Boolean>{ it ->
+            if(it){
+                binding.pbLoadingIndicator.visibility = View.VISIBLE
+            }else{
+                binding.pbLoadingIndicator.visibility = View.GONE
             }
+        }
+
+        binding.rvImages.layoutManager = LinearLayoutManager(requireContext())
+        viewmodel.imageList.observe(viewLifecycleOwner, imageListObserver)
+        viewmodel.isLoading.observe(viewLifecycleOwner,loadingIndicatorObserver)
+
+    }
+
+    override fun onDestroy() {
+        viewmodel.imageList.removeObserver(imageListObserver)
+        _binding = null
+        super.onDestroy()
+
+    }
+
+
+    companion object Companion {
+        @JvmStatic
+        fun newInstance(param1: String, param2: String) = OnlineFragment()
+        private const val TAG = "OnlineFragment"
     }
 }

@@ -29,6 +29,5 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment.findNavController()
         binding.mainBottomNav.setupWithNavController(navController)
 
-
     }
 }
