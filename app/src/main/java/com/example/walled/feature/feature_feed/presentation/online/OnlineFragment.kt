@@ -1,5 +1,8 @@
 package com.example.walled.feature.feature_feed.presentation.online
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -18,6 +21,7 @@ import com.example.walled.feature.feature_feed.domain.model.Media
 import com.example.walled.feature.feature_feed.presentation.adapter.ImagesAdapter
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.example.walled.R
+import androidx.core.net.toUri
 
 class OnlineFragment : Fragment() {
 
@@ -41,7 +45,23 @@ class OnlineFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         imageListObserver = Observer<List<Media>>{ list->
             Log.d(TAG, "data returned")
-            imagesAdapter = ImagesAdapter(requireContext(),list)
+            imagesAdapter = ImagesAdapter(
+                requireContext(),
+                list,
+                object : ImagesAdapter.OnItemClickListener{
+                    override fun onUserNameClick(url: String) {
+
+                        Intent(Intent.ACTION_VIEW).apply {
+                            val packageManager = requireContext().packageManager
+                            data = url.toString().toUri()
+                            if(resolveActivity(packageManager)!=null){
+                                startActivity(this)
+                            }
+
+                        }
+                    }
+                }
+            )
             binding.rvImages.adapter = imagesAdapter
         }
         loadingIndicatorObserver = Observer<Boolean>{ it ->

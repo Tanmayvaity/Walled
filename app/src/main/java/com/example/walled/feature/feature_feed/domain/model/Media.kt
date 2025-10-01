@@ -65,6 +65,12 @@ data class MediaUserDetails(
     val userId : String,
     val username : String,
     val name : String,
+    val links : UserLink
+)
+
+@Serializable
+data class UserLink(
+    val html : String
 )
 
 

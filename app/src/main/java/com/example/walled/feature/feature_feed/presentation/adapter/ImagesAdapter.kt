@@ -23,7 +23,8 @@ import com.google.android.material.imageview.ShapeableImageView
 
 class ImagesAdapter(
     val context : Context,
-    val imageList : List<Media>
+    val imageList : List<Media>,
+    val listener: OnItemClickListener
 ) : RecyclerView.Adapter<ImagesAdapter.ViewHolder>(){
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -62,9 +63,16 @@ class ImagesAdapter(
             })
             .into(holder.binding.ivFetchedImage)
         holder.binding.tvUser.text = "Made by ${image.user.name}"
+        holder.binding.tvUser.setOnClickListener {
+            listener.onUserNameClick(image.user.links.html)
+        }
     }
 
     override fun getItemCount(): Int  = imageList.size
+
+    public interface OnItemClickListener{
+        fun onUserNameClick(url: String)
+    }
 
     inner class ViewHolder(val binding: ImageItemBinding) : RecyclerView.ViewHolder(binding.root)
 
