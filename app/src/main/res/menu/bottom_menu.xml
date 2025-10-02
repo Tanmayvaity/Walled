@@ -4,7 +4,7 @@
 
     <item
         android:title="Home"
-        android:icon="@drawable/ic_home"
+        android:icon="@drawable/bottom_nav_home_icon_selector"
         android:id="@+id/home_fragment"
         app:showAsAction="always"
         />
@@ -16,7 +16,7 @@
         />
     <item
         android:title="Favourites"
-        android:icon="@drawable/ic_favourite"
+        android:icon="@drawable/bottom_nav_favourites_icon_selector"
         android:id="@+id/favourite_fragment"
         app:showAsAction="always"
         />
