@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.navigation.NavDirections
 import androidx.navigation.findNavController
@@ -73,11 +75,13 @@ class MediaDetailFragment : Fragment() {
                         isFirstResource: Boolean
                     ): Boolean {
                         binding.pbLoading.pbBaseLoader.visibility = View.GONE
+//                        binding.clMediaDetailTopContainer.background = resource
                         return false
                     }
 
                 })
                 .into(binding.ivMedia)
+
         }
         loadingObserver = Observer<Boolean>{
             if(it){
