@@ -1,4 +1,4 @@
-package com.example.walled.feature.feature_feed.data.source
+package com.example.walled.core.data.source
 
 
 import com.example.walled.BuildConfig

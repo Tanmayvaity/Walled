@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.walled.feature.feature_feed.domain.model.Media
+import com.example.walled.core.domain.model.Media
 import com.example.walled.feature.feature_feed.domain.usecase.FeedUseCase
 import com.example.walled.feature.feature_feed.presentation.FeedEvent
 import kotlinx.coroutines.launch

@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?android:attr/selectableItemBackground">
-
+    android:foreground="?android:attr/selectableItemBackground"
+    >
 
 
     <ImageView
@@ -44,15 +44,14 @@
     />
 
     <ProgressBar
+        android:id="@+id/pb_image_loading_indicator"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         android:visibility="visible"
-        android:id="@+id/pb_image_loading_indicator"
-        />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

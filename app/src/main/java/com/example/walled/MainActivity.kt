@@ -1,6 +1,7 @@
 package com.example.walled
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -28,6 +29,18 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.findNavController()
         binding.mainBottomNav.setupWithNavController(navController)
+
+        navController.addOnDestinationChangedListener { controller,destination, arguments ->
+            when(destination.id){
+                R.id.mediaDetailFragment -> {
+                    binding.mainBottomNav.visibility = View.GONE
+                }
+                else -> {
+                    binding.mainBottomNav.visibility = View.VISIBLE
+                }
+            }
+
+        }
 
     }
 }

@@ -14,7 +14,11 @@
         android:id="@+id/online_fragment"
         android:name="com.example.walled.feature.feature_feed.presentation.online.OnlineFragment"
         android:label="fragment_online"
-        tools:layout="@layout/fragment_online" />
+        tools:layout="@layout/fragment_online" >
+        <action
+            android:id="@+id/action_online_fragment_to_mediaDetailFragment"
+            app:destination="@id/mediaDetailFragment" />
+    </fragment>
     <fragment
         android:id="@+id/favourite_fragment"
         android:name="com.example.walled.feature.feature_feed.presentation.favourites.FavouritesFragment"
@@ -25,4 +29,16 @@
         android:name="com.example.walled.feature.feature_settings.presentation.SettingsFragment"
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/mediaDetailFragment"
+        android:name="com.example.walled.feature.feature_media_detail.presentation.detail.MediaDetailFragment"
+        android:label="fragment_media_detail"
+        tools:layout="@layout/fragment_media_detail" >
+        <action
+            android:id="@+id/action_mediaDetailFragment_to_online_fragment"
+            app:destination="@id/online_fragment" />
+        <argument
+            android:name="mediaId"
+            app:argType="string" />
+    </fragment>
 </navigation>

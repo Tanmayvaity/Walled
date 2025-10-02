@@ -15,9 +15,11 @@ koin = "4.1.1"
 ksp = "2.0.21-1.0.27"
 koin-annotations-version = "2.2.0-RC1"
 glide = "5.0.5"
+safe-args = "2.9.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-navigation-safe-args= { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "safe-args" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

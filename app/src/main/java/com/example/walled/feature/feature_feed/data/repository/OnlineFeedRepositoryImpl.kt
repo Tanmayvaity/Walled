@@ -1,6 +1,6 @@
 package com.example.walled.feature.feature_feed.data.repository
 
-import com.example.walled.feature.feature_feed.domain.model.Media
+import com.example.walled.core.domain.model.Media
 import com.example.walled.feature.feature_feed.domain.repository.FeedRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -17,15 +17,6 @@ class OnlineFeedRepositoryImpl(
             }
         }.body()
     }
-
-    override suspend fun favouriteMedia() {
-       //
-    }
-
-    override suspend fun unfavouriteMedia() {
-
-    }
-
     override suspend fun downloadMedia() {
 
     }

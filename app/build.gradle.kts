@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     kotlin("plugin.serialization") version "2.0.21"
     alias(libs.plugins.google.ksp)
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -53,6 +54,7 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
 
 }
 

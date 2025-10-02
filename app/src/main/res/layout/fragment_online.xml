@@ -6,17 +6,10 @@
     android:layout_height="match_parent"
     tools:context=".feature.feature_feed.presentation.online.OnlineFragment">
 
-    <ProgressBar
+    <include
         android:id="@+id/pb_loading_indicator"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5" />
+        layout="@layout/common_progressbar"
+        />
 
 
     <androidx.recyclerview.widget.RecyclerView

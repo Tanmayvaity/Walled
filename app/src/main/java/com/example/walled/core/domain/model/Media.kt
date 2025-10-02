@@ -1,4 +1,4 @@
-package com.example.walled.feature.feature_feed.domain.model
+package com.example.walled.core.domain.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
