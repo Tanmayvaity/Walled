@@ -5,4 +5,5 @@ import com.example.walled.core.domain.model.Media
 
 interface MediaDetailRepository {
     suspend fun fetchMedia(id : String) : Media
+    suspend fun download(id : String,url:String)
 }

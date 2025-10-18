@@ -16,6 +16,8 @@ ksp = "2.0.21-1.0.27"
 koin-annotations-version = "2.2.0-RC1"
 glide = "5.0.5"
 safe-args = "2.9.5"
+work = "2.10.5"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,7 +42,9 @@ koin-core = {module = "io.insert-koin:koin-core",version.ref = "koin"}
 koin-android = {module = "io.insert-koin:koin-android",version.ref = "koin"}
 koin-annotations = {module = "io.insert-koin:koin-annotations",version.ref = "koin-annotations-version"}
 koin-compiler = {module = "io.insert-koin:koin-ksp-compiler",version.ref = "koin-annotations-version"}
+koin-work-manager = {module = "io.insert-koin:koin-androidx-workmanager",version.ref = "koin"}
 github-glide = {module = "com.github.bumptech.glide:glide",version.ref = "glide"}
+work-runtime = {module = "androidx.work:work-runtime-ktx",version.ref = "work"}
 
 
 [plugins]

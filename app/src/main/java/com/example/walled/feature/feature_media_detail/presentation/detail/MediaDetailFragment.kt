@@ -1,5 +1,7 @@
 package com.example.walled.feature.feature_media_detail.presentation.detail
 
+import android.Manifest.permission.POST_NOTIFICATIONS
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
@@ -22,18 +26,42 @@ import com.example.walled.R
 import com.example.walled.core.domain.model.Media
 import com.example.walled.databinding.FragmentMediaDetailBinding
 import com.example.walled.databinding.FragmentOnlineBinding
+import com.example.walled.util.Logger
+import com.example.walled.util.PermissionUtil
+import com.example.walled.util.PermissionUtil.showRejectionDialog
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.getValue
 
 
 class MediaDetailFragment : Fragment() {
-    // TODO: Rename and change types of parameters
     private var _binding : FragmentMediaDetailBinding? = null
     private val binding get() = _binding!!
     private val args : MediaDetailFragmentArgs by navArgs()
     private lateinit var mediaObserver : Observer<Media>
     private lateinit var loadingObserver : Observer<Boolean>
     private val viewmodel : MediaDetailViewModel by viewModel<MediaDetailViewModel>()
+    private var photoUrl : String = ""
+
+    private lateinit var notificationPermissionLauncher: ActivityResultLauncher<String>
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        notificationPermissionLauncher = registerForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if(isGranted){
+                logger.debug("Permission has been granted")
+            }else{
+                logger.debug("permission not granted")
+                showRejectionDialog(
+                    title = "Walled",
+                    message = "Notification permission has not been granted.You won't be able to view any download progress or stop it " +
+                            "without this permission",
+                    context = requireContext()
+                )
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +83,7 @@ class MediaDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mediaObserver = Observer<Media>{ it ->
+            photoUrl = it.urls.full
             Glide.with(requireContext()).load(it.urls.regular)
                 .listener(object : RequestListener<Drawable>{
                     override fun onLoadFailed(
@@ -91,14 +120,39 @@ class MediaDetailFragment : Fragment() {
         viewmodel.media.observe(viewLifecycleOwner,mediaObserver)
         viewmodel.isLoading.observe(viewLifecycleOwner,loadingObserver)
 
+
+        binding.btnDownload.setOnClickListener {
+            logger.debug("media download button clicked")
+//            viewmodel.onEvent(MediaDetailEvent.DownloadMedia(args.mediaId))
+
+            PermissionUtil.handleRequestLogic(
+                activity = requireActivity(),
+                context = requireContext(),
+                permission = POST_NOTIFICATIONS,
+                onGranted = {
+                    logger.debug("permission Granted called")
+                    if(!photoUrl.isNotEmpty() || !photoUrl.isNotBlank())return@handleRequestLogic
+                    logger.info("photo url ${photoUrl}")
+                    viewmodel.onEvent(MediaDetailEvent.DownloadMedia(args.mediaId,photoUrl))
+                },
+                onRationale = {
+                    logger.debug("Permission Rationale called")
+                },
+                onPermissionInvoked = {
+                    logger.debug("permission invoked called")
+                    notificationPermissionLauncher.launch(
+                        POST_NOTIFICATIONS
+                    )
+                }
+            )
+        }
+
     }
 
     companion object {
-
+        private val logger = Logger("MediaDetailFragment")
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
-            MediaDetailFragment().apply {
-
-            }
+            MediaDetailFragment()
     }
 }

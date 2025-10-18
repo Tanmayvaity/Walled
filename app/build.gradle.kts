@@ -84,11 +84,13 @@ dependencies {
     // koin
     implementation(libs.koin.android)
     implementation(libs.koin.core)
-//    implementation(libs.koin.viewmodel)
     implementation(libs.koin.annotations)
     ksp(libs.koin.compiler)
-
+    implementation(libs.koin.work.manager)
 
     // glide
     implementation(libs.github.glide)
+
+    // work manager
+    implementation(libs.work.runtime)
 }

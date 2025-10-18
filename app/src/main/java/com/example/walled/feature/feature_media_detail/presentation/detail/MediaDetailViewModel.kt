@@ -28,6 +28,12 @@ class MediaDetailViewModel(
                     _isLoading.postValue(false)
                 }
             }
+
+            is MediaDetailEvent.DownloadMedia -> {
+                viewModelScope.launch {
+                    mediaUseCase.downloadMediaUseCase(event.id,event.url)
+                }
+            }
         }
 
     }

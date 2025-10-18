@@ -16,4 +16,10 @@ class Logger(
     ){
         Log.d(tag,message)
     }
+
+    fun error(
+        message : String
+    ){
+        Log.e(tag,message)
+    }
 }
