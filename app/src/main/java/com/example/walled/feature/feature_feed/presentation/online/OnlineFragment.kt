@@ -25,7 +25,9 @@ class OnlineFragment : Fragment() {
     private val viewmodel : OnlineViewModel by viewModel<OnlineViewModel>()
     private lateinit var imageListObserver: Observer<List<Media>>
     private lateinit var loadingIndicatorObserver : Observer<Boolean>
+//    private lateinit var errorObserver : Observer<String>
     private lateinit var imagesAdapter: ImagesAdapter
+    private var loading : Boolean = true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,14 +69,22 @@ class OnlineFragment : Fragment() {
         loadingIndicatorObserver = Observer<Boolean>{ it ->
             if(it){
                 binding.pbLoadingIndicator.pbBaseLoader.visibility = View.VISIBLE
+                loading = true
             }else{
                 binding.pbLoadingIndicator.pbBaseLoader.visibility = View.GONE
+                loading = false
+
             }
         }
+
+
+
+
 
         binding.rvImages.layoutManager = LinearLayoutManager(requireContext())
         viewmodel.imageList.observe(viewLifecycleOwner, imageListObserver)
         viewmodel.isLoading.observe(viewLifecycleOwner,loadingIndicatorObserver)
+//        viewmodel.error.observe(viewLifecycleOwner,errorObserver)
 
     }
 
