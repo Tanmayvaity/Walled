@@ -1,13 +1,17 @@
 package com.example.walled.feature.feature_media_detail.presentation.detail
 
 import android.Manifest.permission.POST_NOTIFICATIONS
+import android.app.WallpaperManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,13 +38,14 @@ import kotlin.getValue
 
 
 class MediaDetailFragment : Fragment() {
-    private var _binding : FragmentMediaDetailBinding? = null
+    private var _binding: FragmentMediaDetailBinding? = null
     private val binding get() = _binding!!
-    private val args : MediaDetailFragmentArgs by navArgs()
-    private lateinit var mediaObserver : Observer<Media>
-    private lateinit var loadingObserver : Observer<Boolean>
-    private val viewmodel : MediaDetailViewModel by viewModel<MediaDetailViewModel>()
-    private var photoUrl : String = ""
+    private val args: MediaDetailFragmentArgs by navArgs()
+    private lateinit var mediaObserver: Observer<Media>
+    private lateinit var loadingObserver: Observer<Boolean>
+    private lateinit var cacheImageUriObserver: Observer<Uri?>
+    private val viewmodel: MediaDetailViewModel by viewModel<MediaDetailViewModel>()
+    private var photoUrl: String = ""
 
     private lateinit var notificationPermissionLauncher: ActivityResultLauncher<String>
 
@@ -49,9 +54,9 @@ class MediaDetailFragment : Fragment() {
         notificationPermissionLauncher = registerForActivityResult(
             contract = ActivityResultContracts.RequestPermission()
         ) { isGranted ->
-            if(isGranted){
+            if (isGranted) {
                 logger.debug("Permission has been granted")
-            }else{
+            } else {
                 logger.debug("permission not granted")
                 showRejectionDialog(
                     title = "Walled",
@@ -65,7 +70,7 @@ class MediaDetailFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val callback = requireActivity().onBackPressedDispatcher.addCallback(this){
+        val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
             binding.root.findNavController().popBackStack()
         }
         viewmodel.onEvent(MediaDetailEvent.FetchMedia(args.mediaId))
@@ -75,17 +80,17 @@ class MediaDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = FragmentMediaDetailBinding.inflate(inflater,container,false)
+        _binding = FragmentMediaDetailBinding.inflate(inflater, container, false)
         val view = binding.root
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mediaObserver = Observer<Media>{ it ->
+        mediaObserver = Observer<Media> { it ->
             photoUrl = it.urls.full
             Glide.with(requireContext()).load(it.urls.regular)
-                .listener(object : RequestListener<Drawable>{
+                .listener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(
                         e: GlideException?,
                         model: Any?,
@@ -112,13 +117,50 @@ class MediaDetailFragment : Fragment() {
                 .into(binding.ivMedia)
 
         }
-        loadingObserver = Observer<Boolean>{
-            if(it){
+        loadingObserver = Observer<Boolean> {
+            if (it) {
                 binding.pbLoading.pbBaseLoader.visibility = View.VISIBLE
             }
         }
-        viewmodel.media.observe(viewLifecycleOwner,mediaObserver)
-        viewmodel.isLoading.observe(viewLifecycleOwner,loadingObserver)
+
+        cacheImageUriObserver = Observer<Uri?> { uri ->
+            try{
+                if (uri != null) {
+                    val intent = Intent(WallpaperManager.ACTION_CROP_AND_SET_WALLPAPER).apply {
+                        setDataAndType(uri, "image/*")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val chooser = Intent.createChooser(
+                        intent,
+                        getString(R.string.app_name)
+                    ).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+
+                    requireContext().startActivity(chooser)
+
+
+                }
+            }catch (e : Exception){
+                logger.error(e.message.toString())
+                e.printStackTrace()
+                if(uri!=null){
+                    viewmodel.onEvent(MediaDetailEvent.SetWallpaper(uri))
+                }else{
+                    Toast.makeText(requireContext(),"Please try again", Toast.LENGTH_SHORT).show()
+                    logger.error("Uri is null")
+                }
+
+            }
+
+
+        }
+
+
+
+        viewmodel.media.observe(viewLifecycleOwner, mediaObserver)
+        viewmodel.isLoading.observe(viewLifecycleOwner, loadingObserver)
+        viewmodel.tempImageUri.observe(viewLifecycleOwner, cacheImageUriObserver)
 
 
         binding.btnDownload.setOnClickListener {
@@ -131,9 +173,9 @@ class MediaDetailFragment : Fragment() {
                 permission = POST_NOTIFICATIONS,
                 onGranted = {
                     logger.debug("permission Granted called")
-                    if(!photoUrl.isNotEmpty() || !photoUrl.isNotBlank())return@handleRequestLogic
+                    if (!photoUrl.isNotEmpty() || !photoUrl.isNotBlank()) return@handleRequestLogic
                     logger.info("photo url ${photoUrl}")
-                    viewmodel.onEvent(MediaDetailEvent.DownloadMedia(args.mediaId,photoUrl))
+                    viewmodel.onEvent(MediaDetailEvent.DownloadMedia(args.mediaId, photoUrl))
                 },
                 onRationale = {
                     logger.debug("Permission Rationale called")
@@ -147,10 +189,18 @@ class MediaDetailFragment : Fragment() {
             )
         }
 
+        binding.btnApplyWallpaper.setOnClickListener {
+            val media = viewmodel.media.value?.let { it ->
+                viewmodel.onEvent(MediaDetailEvent.DownloadToInternalCache(it.urls.full))
+            }
+
+        }
+
     }
 
     companion object {
         private val logger = Logger("MediaDetailFragment")
+
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
             MediaDetailFragment()

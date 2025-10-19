@@ -7,6 +7,8 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.content.FileProvider
+import com.example.walled.core.domain.model.Result
 import com.example.walled.util.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -15,6 +17,7 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class DownloadManager(
     private val context : Context,
@@ -75,5 +78,59 @@ class DownloadManager(
 
         return null
 
+    }
+
+    suspend fun downloadFileToCache(
+        url : String,
+        onProgress : (Int) -> Unit
+    ) : Result<Uri>{
+        return withContext(Dispatchers.IO){
+            try {
+                val cacheDir = context.cacheDir
+                val tempFile = createTempFile(context,"wallpapers")
+
+                val response = client.get(url)
+                val totalBytes = response.headers["Content-Length"]?.toLong() ?: -1L
+
+                // 2. Stream the download directly to the cache file
+                tempFile.outputStream().use { outputStream ->
+                    val channel = response.bodyAsChannel()
+                    val buffer = ByteArray(8 * 1024)
+                    var bytesCopied = 0L
+                    while (!channel.isClosedForRead) {
+                        val read = channel.readAvailable(buffer)
+                        if (read == -1) break
+                        outputStream.write(buffer, 0, read)
+                        bytesCopied += read
+                        if (totalBytes > 0) {
+                            val progress = (bytesCopied * 100 / totalBytes).toInt()
+                            onProgress(progress)
+                        }
+                    }
+                }
+                val authority = "${context.packageName}.fileprovider"
+                val contentUri = FileProvider.getUriForFile(context, authority, tempFile)
+
+                return@withContext Result.Success(contentUri)
+            }catch (e : Exception){
+                e.printStackTrace()
+                logger.error(e.message.toString())
+                return@withContext Result.Error(e)
+            }
+
+        }
+    }
+
+    fun createTempFile(
+        context: Context,
+        directory : String = "images"
+    ): File {
+        val imageDirPath = File(context.cacheDir, directory).apply {
+            if (!exists()) {
+                mkdir()
+            }
+        }
+        val tempImageFile = File.createTempFile("temp_", ".jpg", imageDirPath)
+        return tempImageFile
     }
 }

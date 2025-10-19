@@ -3,6 +3,7 @@ package com.example.walled.di
 import com.example.walled.core.data.source.DownloadManager
 import com.example.walled.core.data.source.KtorClient
 import com.example.walled.core.data.source.NotificationService
+import com.example.walled.core.data.source.WallpaperHelper
 import com.example.walled.feature.feature_feed.data.repository.OnlineFeedRepositoryImpl
 import com.example.walled.feature.feature_feed.domain.repository.FeedRepository
 import com.example.walled.feature.feature_feed.domain.usecase.FeedUseCase
@@ -11,7 +12,9 @@ import com.example.walled.feature.feature_feed.presentation.online.OnlineViewMod
 import com.example.walled.feature.feature_media_detail.data.repository.MediaDetailRepositoryImpl
 import com.example.walled.feature.feature_media_detail.data.worker.MediaDownloadWorker
 import com.example.walled.feature.feature_media_detail.domain.repository.MediaDetailRepository
+import com.example.walled.feature.feature_media_detail.domain.usecase.ApplyWallpaperUseCase
 import com.example.walled.feature.feature_media_detail.domain.usecase.DownloadMediaUseCase
+import com.example.walled.feature.feature_media_detail.domain.usecase.DownloadToInternalCacheUseCase
 import com.example.walled.feature.feature_media_detail.domain.usecase.GetMediaByIdUseCase
 import com.example.walled.feature.feature_media_detail.domain.usecase.MediaDetailUseCase
 import com.example.walled.feature.feature_media_detail.presentation.detail.MediaDetailViewModel
@@ -41,13 +44,15 @@ val appModule = module {
     }
 
     single<MediaDetailRepository>{
-        MediaDetailRepositoryImpl(get(),androidContext())
+        MediaDetailRepositoryImpl(get(),androidContext(),get(),get())
     }
 
     single<MediaDetailUseCase>{
         MediaDetailUseCase(
             getMediaByIdUseCase = GetMediaByIdUseCase(get()),
-            downloadMediaUseCase = DownloadMediaUseCase(get())
+            downloadMediaUseCase = DownloadMediaUseCase(get()),
+            downloadToInternalCacheUseCase = DownloadToInternalCacheUseCase(get()),
+            applyWallpaperUseCase = ApplyWallpaperUseCase(get())
         )
     }
 
@@ -63,6 +68,10 @@ val appModule = module {
             androidContext(),
             get()
         )
+    }
+
+    single{
+        WallpaperHelper(androidContext())
     }
 
 
