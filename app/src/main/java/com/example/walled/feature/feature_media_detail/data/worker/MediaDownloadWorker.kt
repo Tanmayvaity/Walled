@@ -1,33 +1,24 @@
 package com.example.walled.feature.feature_media_detail.data.worker
 
-import android.R.attr.path
 import android.content.Context
 import androidx.work.CoroutineWorker
-import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
-import com.example.walled.core.data.source.DownloadManager
+import com.example.walled.core.data.source.MediaManager
 import com.example.walled.core.data.source.NotificationService
-import com.example.walled.core.domain.model.MediaDownload
 import com.example.walled.util.Logger
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.path
 import io.ktor.util.network.UnresolvedAddressException
-import kotlinx.coroutines.delay
-import org.koin.core.component.getScopeId
-import java.util.Random
-import kotlin.uuid.Uuid
 
 /**
  * A [CoroutineWorker] responsible for downloading a media file from a given URL in the background.
  *
  * This worker handles the entire download process, including:
  * 1.  Notifying a remote server to increment the download count for the media.
- * 2.  Using a [DownloadManager] to download the actual image file.
+ * 2.  Using a [MediaManager] to download the actual image file.
  * 3.  Displaying and updating a foreground notification to show the download progress.
  * 4.  Displaying a final notification upon successful download completion, allowing the user to view the file.
  *
@@ -45,7 +36,7 @@ class MediaDownloadWorker(
     val workerParams: WorkerParameters,
     private val client: HttpClient,
     private val notificationService: NotificationService,
-    private val downloadManager: DownloadManager
+    private val downloadManager: MediaManager
 ) : CoroutineWorker(appContext, workerParams) {
     private val logger: Logger = Logger("MediaDownloadWorker")
     private val notificationId = id.hashCode() xor System.currentTimeMillis().toInt()
@@ -87,16 +78,21 @@ class MediaDownloadWorker(
             }
 
 
-            val itemUri = downloadManager.downloadRemoteImage(url) { progress,size ->
-                setForeground(
-                    notificationService.createDownloadProgressNotification(
-                        workerParams.id,
-                        notificationId,
-                        progress,
-                        size
+            val itemUri = downloadManager.downloadRemoteImage(
+                url = url,
+                onProgress = { progress, size ->
+                    setForeground(
+                        notificationService.createDownloadProgressNotification(
+                            workerParams.id,
+                            notificationId,
+                            progress,
+                            size
+                        )
                     )
-                )
-            }
+                },
+                block = { url -> client.get(url) }
+
+            )
 //
 
 
@@ -113,12 +109,16 @@ class MediaDownloadWorker(
         } catch (e: UnresolvedAddressException) {
             logger.error("Work Failed $e")
             e.printStackTrace()
-            notificationService.showErrorNotification(id.hashCode() xor System.currentTimeMillis().toInt(),"Internet is turned off")
+            notificationService.showErrorNotification(
+                id.hashCode() xor System.currentTimeMillis().toInt(), "Internet is turned off"
+            )
             return Result.failure()
-        }catch (e : Exception){
+        } catch (e: Exception) {
             logger.error("Work Failed $e")
             e.printStackTrace()
-            notificationService.showErrorNotification(id.hashCode() xor System.currentTimeMillis().toInt(),e.message.toString())
+            notificationService.showErrorNotification(
+                id.hashCode() xor System.currentTimeMillis().toInt(), e.message.toString()
+            )
             return Result.failure()
         }
 

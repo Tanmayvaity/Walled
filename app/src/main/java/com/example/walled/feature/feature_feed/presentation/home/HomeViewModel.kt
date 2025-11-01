@@ -1,10 +1,11 @@
-package com.example.walled.feature.feature_feed.presentation.online
+package com.example.walled.feature.feature_feed.presentation.home
 
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.walled.core.domain.model.Image
 import com.example.walled.core.domain.model.Media
 import com.example.walled.core.domain.model.Result
 import com.example.walled.feature.feature_feed.domain.usecase.FeedUseCase
@@ -13,25 +14,25 @@ import com.example.walled.util.Logger
 import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.coroutines.launch
 
-class OnlineViewModel(
+class HomeViewModel(
     private val feedUseCase: FeedUseCase
 ) : ViewModel() {
 
 
-    private val _imageList = MutableLiveData<List<Media>>(emptyList<Media>())
-    val imageList: LiveData<List<Media>> = _imageList
+    private val _localImageList = MutableLiveData<List<Media>>(emptyList<Media>())
+    val localImageList: LiveData<List<Media>> = _localImageList
 
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val logger = Logger("OnlineViewModel")
+    private val logger = Logger("HomeViewModel")
 
 
     private val _error = MutableLiveData<String>("error while fetching")
     val error: LiveData<String> = _error
 
     init {
-        onEvent(FeedEvent.Fetch)
+//        onEvent(FeedEvent.Fetch)
     }
 
 
@@ -42,22 +43,20 @@ class OnlineViewModel(
                 viewModelScope.launch {
                     _isLoading.postValue(true)
                     logger.debug("Fetch Event Triggered from ${logger.tag}")
-                    val response = feedUseCase.getRemoteImagesUseCase()
+                    val response = feedUseCase.getLocalImagesUseCase()
                     when (response) {
                         is Result.Error -> {
-                            _error.postValue(
-                                if (response.error is UnresolvedAddressException) {
-                                    logger.error("Internet Turned Off")
-                                    "Internet Turned Off"
-                                } else {
-                                    "Error while fetching"
-                                }
-                            )
-
+                            logger.error(response.error.message.toString())
                         }
 
                         is Result.Success -> {
-                            _imageList.postValue(response.data as List<Media>)
+//                            _imageList.postValue(response.data as List<Media>)
+                            logger.debug(localImageList.toString())
+
+                            (response.data as List<Image>).forEach { it ->
+                                logger.debug(it.toString())
+                            }
+
                         }
                     }
                     _isLoading.postValue(false)
@@ -66,12 +65,6 @@ class OnlineViewModel(
 
         }
     }
-
-//    data class UiState<T>(
-//        val data  : T? = null,
-//        val error : Throwable? = null,
-//        val isLoading : Boolean = false
-//    )
 
 
 }

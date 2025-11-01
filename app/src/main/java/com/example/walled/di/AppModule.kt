@@ -1,16 +1,17 @@
 package com.example.walled.di
 
-import com.example.walled.core.data.source.DownloadManager
+import com.example.walled.core.data.source.MediaManager
 import com.example.walled.core.data.source.KtorClient
 import com.example.walled.core.data.source.NotificationService
 import com.example.walled.core.data.source.WallpaperHelper
 import com.example.walled.feature.feature_feed.data.repository.OnlineFeedRepositoryImpl
 import com.example.walled.feature.feature_feed.domain.repository.FeedRepository
 import com.example.walled.feature.feature_feed.domain.usecase.FeedUseCase
+import com.example.walled.feature.feature_feed.domain.usecase.GetLocalImagesUseCase
 import com.example.walled.feature.feature_feed.domain.usecase.GetRemoteImagesUseCase
+import com.example.walled.feature.feature_feed.presentation.home.HomeViewModel
 import com.example.walled.feature.feature_feed.presentation.online.OnlineViewModel
 import com.example.walled.feature.feature_media_detail.data.repository.MediaDetailRepositoryImpl
-import com.example.walled.feature.feature_media_detail.data.worker.MediaDownloadWorker
 import com.example.walled.feature.feature_media_detail.domain.repository.MediaDetailRepository
 import com.example.walled.feature.feature_media_detail.domain.usecase.ApplyWallpaperUseCase
 import com.example.walled.feature.feature_media_detail.domain.usecase.DownloadMediaUseCase
@@ -21,7 +22,6 @@ import com.example.walled.feature.feature_media_detail.presentation.detail.Media
 
 import io.ktor.client.HttpClient
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.workmanager.dsl.worker
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -32,11 +32,12 @@ val appModule = module {
         KtorClient.getClient()
     }
     single<FeedRepository>(named("online")){
-        OnlineFeedRepositoryImpl(get())
+        OnlineFeedRepositoryImpl(get(),get())
     }
     single<FeedUseCase> {
         FeedUseCase(
-            getRemoteImagesUseCase = GetRemoteImagesUseCase(get(named("online")))
+            getRemoteImagesUseCase = GetRemoteImagesUseCase(get(named("online"))),
+            getLocalImagesUseCase = GetLocalImagesUseCase(get(named("online")))
         )
     }
     viewModel {
@@ -60,13 +61,16 @@ val appModule = module {
         MediaDetailViewModel(get())
     }
 
+    viewModel {
+        HomeViewModel(get())
+    }
+
     single {
         NotificationService(androidContext())
     }
     single {
-        DownloadManager(
-            androidContext(),
-            get()
+        MediaManager(
+            androidContext()
         )
     }
 

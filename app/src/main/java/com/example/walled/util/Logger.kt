@@ -3,7 +3,7 @@ package com.example.walled.util
 import android.util.Log
 
 class Logger(
-    private val tag: String
+     val tag: String
 ) {
     fun info(
         message: String

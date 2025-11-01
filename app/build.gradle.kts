@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.koin.annotations)
     ksp(libs.koin.compiler)
     implementation(libs.koin.work.manager)
+    testImplementation(libs.koin.test)
 
     // glide
     implementation(libs.github.glide)

@@ -8,8 +8,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import androidx.work.workDataOf
-import com.example.walled.core.data.source.DownloadManager
-import com.example.walled.core.data.source.NotificationService
+import com.example.walled.core.data.source.MediaManager
 import com.example.walled.core.data.source.WallpaperHelper
 import com.example.walled.core.domain.model.Media
 import com.example.walled.core.domain.model.Result
@@ -23,7 +22,7 @@ import io.ktor.http.path
 class MediaDetailRepositoryImpl(
     private val client: HttpClient,
     private val context: Context,
-    private val downloadManager: DownloadManager,
+    private val downloadManager: MediaManager,
     private val wallpaperHelper: WallpaperHelper
 ) : MediaDetailRepository {
     override suspend fun fetchMedia(id: String): Media {
@@ -49,7 +48,7 @@ class MediaDetailRepositoryImpl(
     }
 
     override suspend fun downloadToInternalCache(url: String): Result<Uri> {
-        return downloadManager.downloadFileToCache(url,{})
+        return downloadManager.downloadFileToCache(url,{}, block = {url -> client.get(url)})
     }
 
     override suspend fun applyWallpaper(uri: Uri) : Result<String> {
