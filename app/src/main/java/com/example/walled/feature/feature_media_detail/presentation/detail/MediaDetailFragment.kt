@@ -35,6 +35,7 @@ import com.example.walled.util.PermissionUtil
 import com.example.walled.util.PermissionUtil.showRejectionDialog
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.getValue
+import androidx.core.net.toUri
 
 
 class MediaDetailFragment : Fragment() {
@@ -46,6 +47,7 @@ class MediaDetailFragment : Fragment() {
     private lateinit var cacheImageUriObserver: Observer<Uri?>
     private val viewmodel: MediaDetailViewModel by viewModel<MediaDetailViewModel>()
     private var photoUrl: String = ""
+    private val isLocalImage: Boolean by lazy { args.localImageUri.isNotEmpty() }
 
     private lateinit var notificationPermissionLauncher: ActivityResultLauncher<String>
 
@@ -73,7 +75,9 @@ class MediaDetailFragment : Fragment() {
         val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
             binding.root.findNavController().popBackStack()
         }
-        viewmodel.onEvent(MediaDetailEvent.FetchMedia(args.mediaId))
+        if (!isLocalImage) {
+            viewmodel.onEvent(MediaDetailEvent.FetchMedia(args.mediaId))
+        }
     }
 
     override fun onCreateView(
@@ -87,6 +91,60 @@ class MediaDetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (isLocalImage) {
+            setupLocalImageMode()
+        } else {
+            setupRemoteImageMode()
+        }
+    }
+
+    private fun setupLocalImageMode() {
+        val localUri = args.localImageUri.toUri()
+        binding.btnDownload.visibility = View.GONE
+        binding.pbLoading.pbBaseLoader.visibility = View.GONE
+
+        Glide.with(requireContext())
+            .load(localUri)
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable?>?,
+                    isFirstResource: Boolean
+                ): Boolean = false
+
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any?,
+                    target: Target<Drawable?>?,
+                    dataSource: DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean = false
+            })
+            .into(binding.ivMedia)
+
+        binding.btnApplyWallpaper.setOnClickListener {
+            try {
+                val intent = Intent(WallpaperManager.ACTION_CROP_AND_SET_WALLPAPER).apply {
+                    setDataAndType(localUri, "image/*")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                val chooser = Intent.createChooser(
+                    intent,
+                    getString(R.string.app_name)
+                ).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                requireContext().startActivity(chooser)
+            } catch (e: Exception) {
+                logger.error(e.message.toString())
+                viewmodel.onEvent(MediaDetailEvent.SetWallpaper(localUri))
+            }
+        }
+    }
+
+    private fun setupRemoteImageMode() {
         mediaObserver = Observer<Media> { it ->
             photoUrl = it.urls.full
             Glide.with(requireContext()).load(it.urls.regular)
@@ -94,12 +152,9 @@ class MediaDetailFragment : Fragment() {
                     override fun onLoadFailed(
                         e: GlideException?,
                         model: Any?,
-                        target: com.bumptech.glide.request.target.Target<Drawable?>?,
+                        target: Target<Drawable?>?,
                         isFirstResource: Boolean
-                    ): Boolean {
-                        //
-                        return false
-                    }
+                    ): Boolean = false
 
                     override fun onResourceReady(
                         resource: Drawable?,
@@ -109,13 +164,10 @@ class MediaDetailFragment : Fragment() {
                         isFirstResource: Boolean
                     ): Boolean {
                         binding.pbLoading.pbBaseLoader.visibility = View.GONE
-//                        binding.clMediaDetailTopContainer.background = resource
                         return false
                     }
-
                 })
                 .into(binding.ivMedia)
-
         }
         loadingObserver = Observer<Boolean> {
             if (it) {
@@ -124,7 +176,7 @@ class MediaDetailFragment : Fragment() {
         }
 
         cacheImageUriObserver = Observer<Uri?> { uri ->
-            try{
+            try {
                 if (uri != null) {
                     val intent = Intent(WallpaperManager.ACTION_CROP_AND_SET_WALLPAPER).apply {
                         setDataAndType(uri, "image/*")
@@ -136,36 +188,26 @@ class MediaDetailFragment : Fragment() {
                     ).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
-
                     requireContext().startActivity(chooser)
-
-
                 }
-            }catch (e : Exception){
+            } catch (e: Exception) {
                 logger.error(e.message.toString())
                 e.printStackTrace()
-                if(uri!=null){
+                if (uri != null) {
                     viewmodel.onEvent(MediaDetailEvent.SetWallpaper(uri))
-                }else{
-                    Toast.makeText(requireContext(),"Please try again", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Please try again", Toast.LENGTH_SHORT).show()
                     logger.error("Uri is null")
                 }
-
             }
-
-
         }
-
-
 
         viewmodel.media.observe(viewLifecycleOwner, mediaObserver)
         viewmodel.isLoading.observe(viewLifecycleOwner, loadingObserver)
         viewmodel.tempImageUri.observe(viewLifecycleOwner, cacheImageUriObserver)
 
-
         binding.btnDownload.setOnClickListener {
             logger.debug("media download button clicked")
-//            viewmodel.onEvent(MediaDetailEvent.DownloadMedia(args.mediaId))
 
             PermissionUtil.handleRequestLogic(
                 activity = requireActivity(),
@@ -190,12 +232,10 @@ class MediaDetailFragment : Fragment() {
         }
 
         binding.btnApplyWallpaper.setOnClickListener {
-            val media = viewmodel.media.value?.let { it ->
+            viewmodel.media.value?.let { it ->
                 viewmodel.onEvent(MediaDetailEvent.DownloadToInternalCache(it.urls.full))
             }
-
         }
-
     }
 
     companion object {

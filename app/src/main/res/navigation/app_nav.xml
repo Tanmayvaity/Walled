@@ -9,7 +9,11 @@
         android:id="@+id/home_fragment"
         android:name="com.example.walled.feature.feature_feed.presentation.home.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_home_fragment_to_mediaDetailFragment"
+            app:destination="@id/mediaDetailFragment" />
+    </fragment>
     <fragment
         android:id="@+id/online_fragment"
         android:name="com.example.walled.feature.feature_feed.presentation.online.OnlineFragment"
@@ -39,6 +43,11 @@
             app:destination="@id/online_fragment" />
         <argument
             android:name="mediaId"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="localImageUri"
+            android:defaultValue=""
             app:argType="string" />
     </fragment>
 </navigation>

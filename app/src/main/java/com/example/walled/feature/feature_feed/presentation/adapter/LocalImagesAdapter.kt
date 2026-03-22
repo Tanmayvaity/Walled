@@ -11,29 +11,25 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.example.walled.core.domain.model.Media
-import com.example.walled.databinding.ImageItemBinding
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.example.walled.core.domain.model.Image
+import com.example.walled.databinding.LocalImageItemBinding
 
-class ImagesAdapter(
+class LocalImagesAdapter(
     private val context: Context,
-    private var imageList: List<Media>,
+    private var imageList: List<Image>,
     private val listener: OnItemClickListener
-) : RecyclerView.Adapter<ImagesAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): ImagesAdapter.ViewHolder {
+) : RecyclerView.Adapter<LocalImagesAdapter.ViewHolder>() {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(context)
-        val imageItemBinding = ImageItemBinding.inflate(inflater, parent, false)
-        return ViewHolder(imageItemBinding)
+        val binding = LocalImageItemBinding.inflate(inflater, parent, false)
+        return ViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ImagesAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val image = imageList[position]
-        Glide.with(context).load(image.urls.regular)
+        Glide.with(context)
+            .load(image.uri)
             .listener(object : RequestListener<Drawable> {
                 override fun onLoadFailed(
                     e: GlideException?,
@@ -41,7 +37,7 @@ class ImagesAdapter(
                     target: Target<Drawable?>?,
                     isFirstResource: Boolean
                 ): Boolean {
-                    //
+                    holder.binding.pbLocalImageLoading.visibility = View.GONE
                     return false
                 }
 
@@ -52,33 +48,27 @@ class ImagesAdapter(
                     dataSource: DataSource?,
                     isFirstResource: Boolean
                 ): Boolean {
-                    holder.binding.pbImageLoadingIndicator.visibility = View.GONE
+                    holder.binding.pbLocalImageLoading.visibility = View.GONE
                     return false
                 }
-
             })
-            .into(holder.binding.ivFetchedImage)
-        holder.binding.tvUser.text = "Made by ${image.user.name}"
-        holder.binding.tvUser.setOnClickListener {
-            listener.onUserNameClick(image.user.links.html)
-        }
-        holder.binding.ivFetchedImage.setOnClickListener {
-            listener.onItemClick(image.photoId)
+            .into(holder.binding.ivLocalImage)
+
+        holder.binding.root.setOnClickListener {
+            listener.onItemClick(image)
         }
     }
 
     override fun getItemCount(): Int = imageList.size
 
-    interface OnItemClickListener {
-        fun onUserNameClick(url: String)
-        fun onItemClick(id: String)
-    }
-
-    fun updateList(newList : List<Media>){
+    fun updateList(newList: List<Image>) {
         imageList = newList
         notifyDataSetChanged()
     }
 
-    inner class ViewHolder(val binding: ImageItemBinding) : RecyclerView.ViewHolder(binding.root)
+    interface OnItemClickListener {
+        fun onItemClick(image: Image)
+    }
 
+    inner class ViewHolder(val binding: LocalImageItemBinding) : RecyclerView.ViewHolder(binding.root)
 }
